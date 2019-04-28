@@ -33,7 +33,7 @@ struct TypeSet {
     int32_t lastCmplwi;
     Address foundSDA, foundSDA2;
     NSMutableDictionary *localLabels;
-    
+
     uint64_t typesToSetCapacity;
     uint64_t typesToSetCount;
     struct TypeSet *typesToSet;
@@ -56,7 +56,7 @@ struct TypeSet {
         foundSDA = BAD_ADDRESS;
         foundSDA2 = BAD_ADDRESS;
         localLabels = [NSMutableDictionary new];
-        
+
         typesToSetCapacity = 256;
         typesToSetCount = 0;
         typesToSet = malloc(sizeof(struct TypeSet) * typesToSetCapacity);
@@ -184,7 +184,7 @@ static ByteType TypeForSize(u32 size)
 
 - (void)performInstructionSpecificAnalysis:(DisasmStruct *)disasm forProcedure:(NSObject<HPProcedure> *)procedure inSegment:(NSObject<HPSegment> *)segment {
     //printf("performInstructionSpecificAnalysis %08X %s %p\n", (u32)disasm->virtualAddr, disasm->instruction.mnemonic, procedure);
-    
+
     // LIS/ADDI resolved address
     for (int i = 0; i < DISASM_MAX_OPERANDS; ++i) {
         DisasmOperand *operand = disasm->operand + i;
@@ -198,7 +198,7 @@ static ByteType TypeForSize(u32 size)
                 [_file setInlineComment:MakeNumericComment((u32)operand->userData[1])
                        atVirtualAddress:disasm->virtualAddr reason:CCReason_Automatic];
             }
-            
+
             // SDA/SDA2 symbol synthesis
             if (disasm->operand[0].type & DISASM_BUILD_REGISTER_INDEX_MASK(13) && segment == _file.firstSegment)
                 foundSDA = (u32)operand->userData[1];
@@ -207,7 +207,7 @@ static ByteType TypeForSize(u32 size)
             break;
         }
     }
-    
+
     // Handle MULHW
     if (disasm->operand[2].userData[0] & DISASM_PPC_OPER_MULHW) {
         int32_t divConstant = (int32_t)disasm->operand[2].userData[1];
@@ -244,7 +244,7 @@ static ByteType TypeForSize(u32 size)
                        atVirtualAddress:disasm->virtualAddr reason:CCReason_Automatic];
         }
     }
-    
+
     // Stack register handling
     if (disasm->instruction.userData & DISASM_PPC_INST_LOAD_STORE &&
         disasm->operand[2].type & DISASM_BUILD_REGISTER_INDEX_MASK(1)) {
@@ -271,7 +271,7 @@ static ByteType TypeForSize(u32 size)
         stackDisp += (int32_t)disasm->operand[2].immediateValue;
         [procedure setVariableName:@"BPpop" forDisplacement:disasm->operand[2].immediateValue];
     }
-    
+
     // Load/store handling
     if (disasm->instruction.userData & DISASM_PPC_INST_LOAD_STORE &&
         disasm->instruction.addressValue && disasm->operand[2].size) {
@@ -284,13 +284,13 @@ static ByteType TypeForSize(u32 size)
             format = Format_Float;
         [self addTypeToSet:disasm->instruction.addressValue size:disasm->operand[2].size format:format];
     }
-    
+
     // Indexed load/store handling
     if (disasm->instruction.userData & DISASM_PPC_INST_INDEXED_LOAD_STORE) {
         Address baseAddr = disasm->operand[2].userData[1];
         indexBaseArr[GetRegisterIndex(disasm->operand[0].type)] = (u32)baseAddr;
     }
-    
+
     if (!strcmp(disasm->instruction.mnemonic, "mtctr")) {
         indexBaseCTR = indexBaseArr[GetRegisterIndex(disasm->operand[0].type)];
     } else if (!strcmp(disasm->instruction.mnemonic, "cmplwi")) {
@@ -326,7 +326,7 @@ static ByteType TypeForSize(u32 size)
     lastCmplwi = 0;
     indexBaseCTR = ~0;
     stackDisp = 0;
-    
+
     // SDA/SDA2 symbol synthesis
     Address maxSDA = BAD_ADDRESS;
     if (foundSDA != BAD_ADDRESS && foundSDA2 != BAD_ADDRESS)
@@ -335,7 +335,7 @@ static ByteType TypeForSize(u32 size)
         maxSDA = foundSDA;
     else if (foundSDA2 != BAD_ADDRESS)
         maxSDA = foundSDA2;
-    
+
     if (maxSDA != BAD_ADDRESS) {
         if (![_file segmentForVirtualAddress:maxSDA]) {
             Address startAddr = _file.lastSegment.endAddress;
@@ -350,12 +350,12 @@ static ByteType TypeForSize(u32 size)
             sec.zeroFillSection = YES;
         }
     }
-    
+
     if (foundSDA != BAD_ADDRESS) {
         [_file setName:@"_SDA_BASE_" forVirtualAddress:foundSDA reason:NCReason_Import];
         [[_cpu hopperServices] logMessage:[NSString stringWithFormat:@"Found _SDA_BASE_ (r13): 0x%08X", (u32)foundSDA]];
     }
-    
+
     if (foundSDA2 != BAD_ADDRESS) {
         [_file setName:@"_SDA2_BASE_" forVirtualAddress:foundSDA2 reason:NCReason_Import];
         [[_cpu hopperServices] logMessage:[NSString stringWithFormat:@"Found _SDA2_BASE_ (r2): 0x%08X", (u32)foundSDA2]];
@@ -373,7 +373,7 @@ static ByteType TypeForSize(u32 size)
             [_file setComment:val atVirtualAddress:(u32)[addr unsignedIntegerValue] reason:CCReason_Automatic];
     }
     [localLabels removeAllObjects];
-    
+
     for (uint64_t i = 0; i < typesToSetCount; ++i) {
         struct TypeSet *storage = &typesToSet[i];
         [_file setType:TypeForSize(storage->size) atVirtualAddress:(u32)storage->addr forLength:storage->size];
@@ -412,14 +412,14 @@ static ByteType TypeForSize(u32 size)
         working.operand[i].userData[0] = 0;
         working.operand[i].size = 0;
     }
-    
+
     PPCD_CB d;
     d.pc = working.virtualAddr;
     d.instr = [_file readUInt32AtVirtualAddress:working.virtualAddr];
     d.disasm = &working;
     d.lisArr = _trackingLis ? lisArr : NULL;
     PPCDisasm(&d);
-    
+
     /* Resolve SDA/SDA2 load/store here */
     if (working.instruction.userData & DISASM_PPC_INST_LOAD_STORE) {
         if (working.operand[2].type & DISASM_BUILD_REGISTER_INDEX_MASK(13)) {
@@ -452,15 +452,15 @@ static ByteType TypeForSize(u32 size)
                 working.instruction.addressValue = addr - working.operand[2].immediateValue;
         }
     }
-    
+
     memcpy(disasm, &working, sizeof(working));
-    
+
 #if 0
     if (_trackingLis) {
         printf ("%08X  %08X  %-12s%-30s\n", d.pc, d.instr, d.mnemonic, d.operands);
     }
 #endif
-    
+
     if ((d.iclass & PPC_DISA_ILLEGAL) == PPC_DISA_ILLEGAL) return DISASM_UNKNOWN_OPCODE;
     return 4; //All instructions are 4 bytes
 }
@@ -471,7 +471,7 @@ static ByteType TypeForSize(u32 size)
 
 - (void)performBranchesAnalysis:(DisasmStruct *)disasm computingNextAddress:(Address *)next andBranches:(NSMutableArray<NSNumber *> *)branches forProcedure:(NSObject<HPProcedure> *)procedure basicBlock:(NSObject<HPBasicBlock> *)basicBlock ofSegment:(NSObject<HPSegment> *)segment calledAddresses:(NSMutableArray<NSNumber *> *)calledAddresses callsites:(NSMutableArray<NSNumber *> *)callSitesAddresses {
     //printf("performBranchesAnalysis %08X %s %p\n", (u32)disasm->virtualAddr, disasm->instruction.mnemonic, procedure);
-    
+
     // Switch statement
     if (indexBaseCTR != ~0 && !strcmp(disasm->instruction.mnemonic, "bctr") && lastCmplwi) {
         uint32_t offset = 0;
@@ -538,7 +538,7 @@ static ByteType TypeForSize(u32 size)
         *next = disasm->virtualAddr + 4;
         return;
     }
-    
+
     if (disasm->instruction.branchType == DISASM_BRANCH_CALL) {
         [callSitesAddresses addObject:@(disasm->instruction.addressValue)];
         *next = disasm->virtualAddr + 4;
@@ -580,13 +580,13 @@ static int GetRegisterIndex(DisasmOperandType type)
     if (operandIndex >= DISASM_MAX_OPERANDS) return nil;
     DisasmOperand *operand = disasm->operand + operandIndex;
     if (operand->type == DISASM_OPERAND_NO_OPERAND) return nil;
-   
+
     // Get the format requested by the user
     ArgFormat format = [file formatForArgument:operandIndex atVirtualAddress:disasm->virtualAddr];
-    
+
     NSObject<HPHopperServices> *services = _cpu.hopperServices;
     NSObject<HPASMLine> *line = [services blankASMLine];
-    
+
     if (operand->type & DISASM_OPERAND_CONSTANT_TYPE) {
         // Local variable
         if ((format == Format_Default || format == Format_StackVariable)) {
@@ -616,7 +616,7 @@ static int GetRegisterIndex(DisasmOperandType type)
                 }
             }
         }
-        
+
         if (format == Format_Default) {
             if (disasm->instruction.addressValue != 0 && !(disasm->instruction.userData & DISASM_PPC_INST_LOAD_STORE)) {
                 format = Format_Address;
@@ -650,9 +650,9 @@ static int GetRegisterIndex(DisasmOperandType type)
     else if (operand->type & DISASM_OPERAND_OTHER) {
         [line appendRegister:@(operand->userString + 8)];
     }
-    
+
     [line setIsOperand:operandIndex startingAtIndex:0];
-    
+
     return line;
 }
 
@@ -666,37 +666,37 @@ static const char* CRNames[] =
 
 - (NSObject<HPASMLine> *)buildCompleteOperandString:(DisasmStruct *)disasm inFile:(NSObject<HPDisassembledFile> *)file raw:(BOOL)raw {
     NSObject<HPHopperServices> *services = _cpu.hopperServices;
-    
+
     NSObject<HPASMLine> *line = [services blankASMLine];
-    
+
     int op_index = 0;
-    
+
     if (disasm->instruction.userData & DISASM_PPC_INST_LOAD_STORE)
     {
         NSObject<HPASMLine> *part = [self buildOperandString:disasm forOperandIndex:0 inFile:file raw:raw];
         if (part == nil) return line;
         [line append:part];
         [line appendRawString:@", "];
-        
+
         part = [self buildOperandString:disasm forOperandIndex:1 inFile:file raw:raw];
         if (part == nil) return line;
         [line append:part];
         [line appendRawString:@"("];
-        
+
         part = [self buildOperandString:disasm forOperandIndex:2 inFile:file raw:raw];
         if (part == nil) return line;
         [line append:part];
         [line appendRawString:@")"];
-        
+
         op_index = 3;
     }
-    
+
     for (; op_index<DISASM_MAX_OPERANDS; op_index++) {
         NSObject<HPASMLine> *part = [self buildOperandString:disasm forOperandIndex:op_index inFile:file raw:raw];
         if (part == nil) break;
         if (op_index) [line appendRawString:@", "];
         [line append:part];
-        
+
         // RLWIMI comment
         DisasmOperand *operand = disasm->operand + op_index;
         if (operand->userData[0] & DISASM_PPC_OPER_RLWIMI) {
@@ -715,14 +715,14 @@ static const char* CRNames[] =
             }
         }
     }
-    
+
     if (!strcmp(disasm->instruction.mnemonic, "cror")) {
         [line appendComment:[NSString stringWithFormat:@" # %s = %s | %s",
                              CRNames[GetRegisterIndex(disasm->operand[0].type) & 0x3],
                              CRNames[GetRegisterIndex(disasm->operand[1].type) & 0x3],
                              CRNames[GetRegisterIndex(disasm->operand[2].type) & 0x3]]];
     }
-    
+
     return line;
 }
 

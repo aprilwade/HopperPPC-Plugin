@@ -45,7 +45,7 @@ static u32 FASTCALL Swap32(u32 data)
         disa.pc = pc;
         disa.instr = Swap32 (instr);
         PPCDisasm (&disa);
-        
+
         printf ("%08X  %08X  %-12s%-30s\n", pc, instr, disa.mnemonic, disa.operands);
         pc += 4;
     }

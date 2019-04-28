@@ -158,7 +158,7 @@ static void DISASM_PPC_BUILD_FPR_OP(int idx, bool write)
 static const char *spr_name(int n)
 {
     static char def[8];
-    
+
     switch(n)
     {
             // General architecture special-purpose registers.
@@ -197,7 +197,7 @@ static const char *spr_name(int n)
         case 541: return "DBAT2L";
         case 542: return "DBAT3U";
         case 543: return "DBAT3L";
-            
+
             // Optional registers.
 #if !defined(GEKKO) && !defined(BROADWAY)
         case 282: return "EAR";
@@ -205,7 +205,7 @@ static const char *spr_name(int n)
         case 1022: return "FPECR";
         case 1023: return "PIR";
 #endif
-            
+
             // Gekko-specific SPRs
 #ifdef GEKKO
         case 282: return "EAR";
@@ -248,7 +248,7 @@ static const char *spr_name(int n)
         case 1022: return "THRM3";
 #endif
     }
-    
+
     sprintf(def, "%u", n);
     return def;
 }
@@ -256,14 +256,14 @@ static const char *spr_name(int n)
 static const char *tbr_name(int n)
 {
     static char def[8];
-    
+
     switch(n)
     {
             // General architecture time-base registers.
         case 268: return "TBL";
         case 269: return "TBU";
     }
-    
+
     sprintf(def, "%u", n);
     return def;
 }
@@ -519,7 +519,7 @@ static void integer(const char *mnem, char form, int dab, int hex, int s, int cr
             ptr += sprintf(ptr, COMMA "%s", simm(s ? DIS_SIMM : DIS_UIMM, hex, s));
             DISASM_PPC_BUILD_IMM_OP(s ? DIS_SIMM : DIS_UIMM, hex);
         }
-        
+
         if (thisLis != ~0)
         {
             DisasmOperand* op = &o->disasm->operand[o->opIdx-1];
@@ -553,7 +553,7 @@ static void integer(const char *mnem, char form, int dab, int hex, int s, int cr
             ptr += sprintf(ptr, "%s", REGB);
             DISASM_PPC_BUILD_GPR_OP(rb, false);
         }
-        
+
         if (thisLis != ~0)
         {
             DisasmOperand* op = &o->disasm->operand[o->opIdx-1];
@@ -687,14 +687,14 @@ static void addi(const char *suffix)
         integer5(mnem, 'D', DAB_D|DAB_A, 0, 1);
         o->iclass |= PPC_DISA_SIMPLIFIED;
         o->disasm->instruction.userData |= DISASM_PPC_INST_SUBI;
-        
+
         DisasmOperand* op = &o->disasm->operand[1];
         op->type = DISASM_OPERAND_MEMORY_TYPE;
         op->type |= DISASM_BUILD_REGISTER_CLS_MASK(RegClass_GeneralPurposeRegister);
         op->type |= DISASM_BUILD_REGISTER_INDEX_MASK(DIS_RA);
         op->memory.baseRegistersMask = DISASM_BUILD_REGISTER_INDEX_MASK(DIS_RA);
         op->memory.displacement = o->disasm->operand[2].immediateValue;
-        
+
         if (thisLis != ~0)
         {
             DisasmOperand* op = &o->disasm->operand[o->opIdx-1];
@@ -711,14 +711,14 @@ static void addi(const char *suffix)
         s32 thisLis = o->lisArr ? o->lisArr[DIS_RA] : ~0;
         integer5(mnem, 'D', DAB_D|DAB_A, 0, 0);
         o->disasm->instruction.userData |= DISASM_PPC_INST_ADDI;
-        
+
         DisasmOperand* op = &o->disasm->operand[1];
         op->type = DISASM_OPERAND_MEMORY_TYPE;
         op->type |= DISASM_BUILD_REGISTER_CLS_MASK(RegClass_GeneralPurposeRegister);
         op->type |= DISASM_BUILD_REGISTER_INDEX_MASK(DIS_RA);
         op->memory.baseRegistersMask = DISASM_BUILD_REGISTER_INDEX_MASK(DIS_RA);
         op->memory.displacement = o->disasm->operand[2].immediateValue;
-        
+
         if (thisLis != ~0)
         {
             DisasmOperand* op = &o->disasm->operand[o->opIdx-1];
@@ -1024,7 +1024,7 @@ static void rlw(const char *name, int rb, int ins)
                 DISASM_PPC_BUILD_GPR_OP(DIS_RS, false);
                 DISASM_PPC_BUILD_IMM_OP(mb, false);
                 DISASM_PPC_ADD_RLWINM_HELPER
-                
+
                 o->r[0] = DIS_RA;
                 o->r[1] = DIS_RS;
                 o->r[2] = mb;
@@ -1040,7 +1040,7 @@ static void rlw(const char *name, int rb, int ins)
                 DISASM_PPC_BUILD_GPR_OP(DIS_RS, false);
                 DISASM_PPC_BUILD_IMM_OP(31 - me, false);
                 DISASM_PPC_ADD_RLWINM_HELPER
-                
+
                 o->r[0] = DIS_RA;
                 o->r[1] = DIS_RS;
                 o->r[2] = 31 - me;
@@ -1048,7 +1048,7 @@ static void rlw(const char *name, int rb, int ins)
                 return;
             }
         }
-        
+
         if (mb == 0 && me == 31)
         {
             if (me + DIS_RB > 31)
@@ -1060,7 +1060,7 @@ static void rlw(const char *name, int rb, int ins)
                 DISASM_PPC_BUILD_GPR_OP(DIS_RS, false);
                 DISASM_PPC_BUILD_IMM_OP(32 - DIS_RB, false);
                 DISASM_PPC_ADD_RLWINM_HELPER
-                
+
                 o->r[0] = DIS_RA;
                 o->r[1] = DIS_RS;
                 o->r[2] = 32 - DIS_RB;
@@ -1075,7 +1075,7 @@ static void rlw(const char *name, int rb, int ins)
                 DISASM_PPC_BUILD_GPR_OP(DIS_RS, false);
                 DISASM_PPC_BUILD_IMM_OP(DIS_RB, false);
                 DISASM_PPC_ADD_RLWINM_HELPER
-                
+
                 o->r[0] = DIS_RA;
                 o->r[1] = DIS_RS;
                 o->r[2] = DIS_RB;
@@ -1083,7 +1083,7 @@ static void rlw(const char *name, int rb, int ins)
             }
             return;
         }
-        
+
         if (mb == 0 && DIS_RB == 31 - me)
         {
             // slwi
@@ -1093,14 +1093,14 @@ static void rlw(const char *name, int rb, int ins)
             DISASM_PPC_BUILD_GPR_OP(DIS_RS, false);
             DISASM_PPC_BUILD_IMM_OP(DIS_RB, false);
             DISASM_PPC_ADD_RLWINM_HELPER
-            
+
             o->r[0] = DIS_RA;
             o->r[1] = DIS_RS;
             o->r[2] = DIS_RB;
             o->iclass |= PPC_DISA_INTEGER | PPC_DISA_SIMPLIFIED;
             return;
         }
-        
+
         if (me == 31 && 32 - DIS_RB == mb)
         {
             // srwi
@@ -1110,14 +1110,14 @@ static void rlw(const char *name, int rb, int ins)
             DISASM_PPC_BUILD_GPR_OP(DIS_RS, false);
             DISASM_PPC_BUILD_IMM_OP(mb, false);
             DISASM_PPC_ADD_RLWINM_HELPER
-            
+
             o->r[0] = DIS_RA;
             o->r[1] = DIS_RS;
             o->r[2] = mb;
             o->iclass |= PPC_DISA_INTEGER | PPC_DISA_SIMPLIFIED;
             return;
         }
-        
+
         if (mb == 0 && me != 31)
         {
             // extlwi
@@ -1129,7 +1129,7 @@ static void rlw(const char *name, int rb, int ins)
             DISASM_PPC_BUILD_IMM_OP(n, false);
             DISASM_PPC_BUILD_IMM_OP(DIS_RB, false);
             DISASM_PPC_ADD_RLWINM_HELPER
-            
+
             o->r[0] = DIS_RA;
             o->r[1] = DIS_RS;
             o->r[2] = n;
@@ -1137,7 +1137,7 @@ static void rlw(const char *name, int rb, int ins)
             o->iclass |= PPC_DISA_INTEGER | PPC_DISA_SIMPLIFIED;
             return;
         }
-        
+
         if (mb != 0 && me == 31)
         {
             // extrwi
@@ -1150,7 +1150,7 @@ static void rlw(const char *name, int rb, int ins)
             DISASM_PPC_BUILD_IMM_OP(n, false);
             DISASM_PPC_BUILD_IMM_OP(b, false);
             DISASM_PPC_ADD_RLWINM_HELPER
-            
+
             o->r[0] = DIS_RA;
             o->r[1] = DIS_RS;
             o->r[2] = n;
@@ -1263,7 +1263,7 @@ static void ldst(const char *name, int x/*indexed*/, int load, int L, int string
         s32 thisLis = o->lisArr ? o->lisArr[DIS_RA] : ~0;
 
         integer3(name, fload ? 'F' : 'X', DAB_D|DAB_A|DAB_B);
-        
+
         DisasmOperand* op = &o->disasm->operand[o->opIdx-1];
         op->type = DISASM_OPERAND_MEMORY_TYPE;
         op->type |= DISASM_BUILD_REGISTER_CLS_MASK(RegClass_GeneralPurposeRegister);
@@ -1272,14 +1272,14 @@ static void ldst(const char *name, int x/*indexed*/, int load, int L, int string
         op->memory.baseRegistersMask = DISASM_BUILD_REGISTER_INDEX_MASK(DIS_RA);
         op->memory.indexRegistersMask = DISASM_BUILD_REGISTER_INDEX_MASK(DIS_RB);
         op->memory.scale = 1;
-        
+
         if (!load)
         {
             o->disasm->operand[0].accessMode = DISASM_ACCESS_READ;
             o->disasm->implicitlyReadRegisters[RegClass_GeneralPurposeRegister] |= DISASM_BUILD_REGISTER_INDEX_MASK(DIS_RD);
             o->disasm->implicitlyWrittenRegisters[RegClass_GeneralPurposeRegister] &= ~DISASM_BUILD_REGISTER_INDEX_MASK(DIS_RD);
         }
-        
+
         if (thisLis != ~0)
         {
             o->disasm->instruction.userData |= DISASM_PPC_INST_INDEXED_LOAD_STORE;
@@ -1310,7 +1310,7 @@ static void ldst(const char *name, int x/*indexed*/, int load, int L, int string
         o->r[1] = ra;
         o->immed = DIS_UIMM & 0x8000 ? DIS_UIMM | 0xFFFF0000 : DIS_UIMM;
         o->disasm->instruction.userData |= DISASM_PPC_INST_LOAD_STORE;
-        
+
         DisasmOperand* op = &o->disasm->operand[o->opIdx-1];
         op->type = DISASM_OPERAND_MEMORY_TYPE;
         op->type |= DISASM_BUILD_REGISTER_CLS_MASK(RegClass_GeneralPurposeRegister);
@@ -1318,7 +1318,7 @@ static void ldst(const char *name, int x/*indexed*/, int load, int L, int string
         op->size = size;
         op->memory.baseRegistersMask = DISASM_BUILD_REGISTER_INDEX_MASK(ra);
         op->memory.displacement = imm;
-        
+
         if (thisLis != ~0)
         {
             DisasmOperand* op = &o->disasm->operand[o->opIdx-2];
@@ -1733,7 +1733,7 @@ static void ps_ldst(char *fix)
     o->r[0] = s; o->r[1] = a; o->r[2] = DIS_RB >> 1;
     o->immed = d & 0x800 ? d | 0xFFFFF000 : d;
     o->iclass = PPC_DISA_FPU | PPC_DISA_LDST | PPC_DISA_SPECIFIC;
-    
+
     DISASM_PPC_BUILD_FPR_OP(s, true);
     DISASM_PPC_BUILD_IMM_OP((s32)(d & 0x800 ? d | 0xFFFFF000 : d), true);
     DISASM_PPC_BUILD_GPR_OP(a, false);
@@ -1750,7 +1750,7 @@ static void ps_ldstx(char *fix)
     sprintf(o->operands, "%s%i" COMMA "%s" COMMA "%s" COMMA "%i" COMMA "%i", fregname, d, regname[a], regname[b], (Instr >> 10) & 1, (Instr >> 7) & 7);
     o->r[0] = d; o->r[1] = a; o->r[2] = b; o->r[3] = DIS_RC >> 1;
     o->iclass = PPC_DISA_FPU | PPC_DISA_LDST | PPC_DISA_SPECIFIC;
-    
+
     DISASM_PPC_BUILD_FPR_OP(d, true);
     DISASM_PPC_BUILD_GPR_OP(a, false);
     DISASM_PPC_BUILD_GPR_OP(b, false);
@@ -1765,7 +1765,7 @@ static void ps_dacb(char *fix)
     sprintf(o->operands, "%s%i" COMMA "%s%i" COMMA "%s%i" COMMA "%s%i", fregname, d, fregname, a, fregname, c, fregname, b);
     o->r[0] = d; o->r[1] = a; o->r[2] = c; o->r[3] = b; 
     o->iclass = PPC_DISA_FPU | PPC_DISA_SPECIFIC;
-    
+
     DISASM_PPC_BUILD_FPR_OP(d, true);
     DISASM_PPC_BUILD_FPR_OP(a, false);
     DISASM_PPC_BUILD_FPR_OP(c, false);
@@ -1780,7 +1780,7 @@ static void ps_dac(char *fix)
     sprintf(o->operands, "%s%i" COMMA "%s%i" COMMA "%s%i", fregname, d, fregname, a, fregname, c);
     o->r[0] = d; o->r[1] = a; o->r[2] = c;
     o->iclass = PPC_DISA_FPU | PPC_DISA_SPECIFIC;
-    
+
     DISASM_PPC_BUILD_FPR_OP(d, true);
     DISASM_PPC_BUILD_FPR_OP(a, false);
     DISASM_PPC_BUILD_FPR_OP(c, false);
@@ -1794,7 +1794,7 @@ static void ps_dab(char *fix, int unmask)
     sprintf(o->operands, "%s%i" COMMA "%s%i" COMMA "%s%i", fregname, d, fregname, a, fregname, b);
     o->r[0] = d; o->r[1] = a; o->r[2] = b;
     o->iclass = PPC_DISA_FPU | PPC_DISA_SPECIFIC;
-    
+
     DISASM_PPC_BUILD_FPR_OP(d, true);
     DISASM_PPC_BUILD_FPR_OP(a, false);
     DISASM_PPC_BUILD_FPR_OP(b, false);
@@ -1809,7 +1809,7 @@ static void ps_db(char *fix, int aonly)
     sprintf(o->operands, "%s%i" COMMA "%s%i", fregname, d, fregname, b);
     o->r[0] = d; o->r[1] = b;
     o->iclass = PPC_DISA_FPU | PPC_DISA_SPECIFIC;
-    
+
     DISASM_PPC_BUILD_FPR_OP(d, true);
     DISASM_PPC_BUILD_FPR_OP(b, false);
 }

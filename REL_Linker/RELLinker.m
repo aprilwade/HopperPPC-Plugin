@@ -43,7 +43,7 @@ static inline int32_t _bswap32(int32_t v) {
 struct relhdr_info
 {
     uint32_t module_id;          // in .rso or .rel, not in .sel
-    
+
     // in .rso or .rel or .sel
     uint32_t prev;
     uint32_t next;
@@ -57,27 +57,27 @@ struct relhdr_info
 struct relhdr
 {
     struct relhdr_info info;
-    
+
     // version 1
     uint32_t bss_size;
     uint32_t rel_offset;
     uint32_t import_offset;
     uint32_t import_size;         // size in bytes
-    
+
     // Section ids containing functions
     uint8_t prolog_section;
     uint8_t epilog_section;
     uint8_t unresolved_section;
     uint8_t bss_section;
-    
+
     uint32_t prolog_offset;
     uint32_t epilog_offset;
     uint32_t unresolved_offset;
-    
+
     // version 2
     uint32_t align;
     uint32_t bss_align;
-    
+
     // version 3
     uint32_t fix_size;
 };
@@ -136,7 +136,7 @@ struct rel_relocation_entry
 
 - (void)_prelinkREL:(NSObject<HPSegment>*)segment file:(NSObject<HPDisassembledFile>*)file {
     const void *bytes = segment.mappedData.bytes;
-    
+
     // Initial metadata
     segment.readable = YES;
     segment.writable = YES;
@@ -185,7 +185,7 @@ struct rel_relocation_entry
             }
         }
     }
-    
+
     [_services.currentDocument endWaiting];
 }
 
@@ -203,7 +203,7 @@ struct rel_relocation_entry
     [_services.currentDocument beginToWait:[NSString stringWithFormat:@"Linking %@", segment.segmentName]];
     NSMutableData* mutable = [segment.mappedData mutableCopy];
     void *bytes = mutable.mutableBytes;
-    
+
     // Initial metadata
     const struct relhdr *header = bytes;
     uint32_t moduleId = _bswap32(header->info.module_id);
@@ -212,7 +212,7 @@ struct rel_relocation_entry
     if (version >= 2)
         bssAlign = _bswap32(header->bss_align);
     uint32_t bssSize = _bswap32(header->bss_size);
-    
+
     // Advertize REL sections to Hopper
     const struct rel_section_entry *sections = bytes + _bswap32(header->info.section_offset);
     uint32_t numSections = _bswap32(header->info.num_sections);
@@ -231,7 +231,7 @@ struct rel_relocation_entry
                 [dataSections addObject:sec];
         }
     }
-    
+
     // Enumerate imports and relocations
     const struct rel_import_entry *imports = bytes + _bswap32(header->import_offset);
     uint32_t numImports = _bswap32(header->import_size) / 8;
@@ -355,13 +355,13 @@ struct rel_relocation_entry
             }
         }
     }
-    
+
     [_services.currentDocument endWaiting];
     [_services.currentDocument beginToWait:[NSString stringWithFormat:@"Analyzing %@", segment.segmentName]];
-    
+
     // Apply relocated data
     [segment setMappedData:mutable];
-    
+
     // Prolog
     if (header->prolog_section) {
         NSObject<HPSection> *sec = [file sectionNamed:
@@ -374,7 +374,7 @@ struct rel_relocation_entry
                    reason:NCReason_Import];
         }
     }
-    
+
     // Epilog
     if (header->epilog_section) {
         NSObject<HPSection> *sec = [file sectionNamed:
@@ -387,7 +387,7 @@ struct rel_relocation_entry
                    reason:NCReason_Import];
         }
     }
-    
+
     // Unresolved
     if (header->unresolved_section) {
         NSObject<HPSection> *sec = [file sectionNamed:
@@ -400,7 +400,7 @@ struct rel_relocation_entry
                    reason:NCReason_Import];
         }
     }
-    
+
     // Analyze text sections
     NSObject<CPUContext> *context = [file buildCPUContext];
     for (NSObject<HPSection> *sec in textSections) {
@@ -415,7 +415,7 @@ struct rel_relocation_entry
             addr += 4;
         }
     }
-    
+
     // Analyze data sections
     for (NSObject<HPSection> *sec in dataSections) {
         for (uint64_t offset = 0; offset < sec.fileLength; offset += 4) {
@@ -428,7 +428,7 @@ struct rel_relocation_entry
             }
         }
     }
-    
+
     [_services.currentDocument endWaiting];
 }
 
@@ -448,12 +448,12 @@ struct rel_relocation_entry
                 uint32_t version = _bswap32(header->info.version);
                 if (version != 1 && version != 2 && version != 3)
                     continue;
-                
+
                 uint32_t sectionInfoOff = _bswap32(header->info.section_offset);
                 uint32_t importTableOff = _bswap32(header->import_offset);
                 if (sectionInfoOff >= seg.mappedData.length || importTableOff >= seg.mappedData.length)
                     continue;
-                
+
                 // Valid REL
                 NSInteger result = [doc displayAlertWithMessageText:@"Detected REL"
                                                       defaultButton:@"Yes"
@@ -466,7 +466,7 @@ struct rel_relocation_entry
                     [linkedSegments addObject:seg];
             }
         }
-        
+
         if (!found) {
             [doc displayAlertWithMessageText:@"Unnamed REL segment not detected"
                                defaultButton:@"OK"
@@ -476,17 +476,17 @@ struct rel_relocation_entry
             //[doc endWaiting];
             return;
         }
-        
+
         for (NSObject<HPSegment> *seg in linkedSegments) {
             // First pass creates Hopper sections
             [self _prelinkREL:seg file:doc.disassembledFile];
         }
-        
+
         for (NSObject<HPSegment> *seg in linkedSegments) {
             // Second pass resolves relocations from all candidate REL modules
             [self _linkREL:seg file:doc.disassembledFile];
         }
-        
+
         //[doc endWaiting];
     });
 }

@@ -88,10 +88,10 @@ static void OSWriteBigInt32(void *address, uintptr_t offset, int32_t data) {
     uint32_t t0offset = OSReadBigInt32(bytes, 0);
     uint32_t t0dest = OSReadBigInt32(bytes, 0x48);
     uint32_t entryPoint = OSReadBigInt32(bytes, 0xE0);
-    
+
     //Gamecube RAM range is 0x80000000 to 0x8C000000.
     //The Wii has more memory than that, but for the initial release I'm targeting Gamecube specs.
-    
+
     //Text0 does not need to be at 0x100, but it always is. We're going to use it to identify this as a DOL.
     if (t0offset == 0x100 &&
         t0dest >= 0x80000000 && t0dest <= 0x8C000000 &&
@@ -133,7 +133,7 @@ static const struct SectionRange* FindSectionRange(const struct SectionRange* ra
 - (FileLoaderLoadingStatus)loadData:(NSData *)data usingDetectedFileType:(NSObject<HPDetectedFileType> *)fileType options:(FileLoaderOptions)options forFile:(NSObject<HPDisassembledFile> *)file usingCallback:(FileLoadingCallbackInfo)callback {
     const void *bytes = (const void *)[data bytes];
     if (OSReadBigInt32(bytes, 0) != 0x100) return DIS_BadFormat;
-    
+
     /* Sort section ranges by memory offset and clamp lengths to avoid overlap */
     struct SectionRange sections[19];
     for(int i=0; i<18; i++){
@@ -163,7 +163,7 @@ static const struct SectionRange* FindSectionRange(const struct SectionRange* ra
             sections[i].length = sections[i+1].start - sections[i].start;
         ++secCount;
     }
-    
+
     /* Create sections */
     int lastData = 0;
     int lastData2 = 0;
@@ -172,11 +172,11 @@ static const struct SectionRange* FindSectionRange(const struct SectionRange* ra
         uint32_t regionStart = OSReadBigInt32(bytes, 0+(i*4));
         uint32_t regionDest = range->start;
         uint32_t regionSize = range->length;
-        
+
         if (regionStart > 0 && regionDest > 0x80000000 && regionSize > 0) {
             NSObject<HPSegment> *segment = [file addSegmentAt:regionDest size:regionSize];
             NSObject<HPSection> *section = [segment addSectionAt:regionDest size:regionSize];
-            
+
             if (i<=6) {
                 section.pureCodeSection = YES;
                 section.containsCode = YES;
@@ -247,7 +247,7 @@ static const struct SectionRange* FindSectionRange(const struct SectionRange* ra
 
             NSString *comment = [NSString stringWithFormat:@"\n\nHunk %@\n\n", segment.segmentName];
             [file setComment:comment atVirtualAddress:regionDest reason:CCReason_Automatic];
-            
+
             NSData *segmentData = [NSData dataWithBytes:(bytes+regionStart) length:regionSize];
             segment.mappedData = segmentData;
             segment.fileOffset = regionStart;
@@ -256,7 +256,7 @@ static const struct SectionRange* FindSectionRange(const struct SectionRange* ra
             section.fileLength = segment.fileLength;
         }
     }
-    
+
     /* Create BSS section */
     const struct SectionRange* range = FindSectionRange(sections, 18);
     bssLocation = range->start;
@@ -275,7 +275,7 @@ static const struct SectionRange* FindSectionRange(const struct SectionRange* ra
         NSLog(@"Create section %@ of %d bytes at [0x%x;]",
               section.sectionName, bssLength, bssLocation);
     }
-    
+
     /* Detect hidden SBSS section */
     if (lastData && lastData2) {
         const struct SectionRange* range1 = FindSectionRange(sections, lastData2);
@@ -298,7 +298,7 @@ static const struct SectionRange* FindSectionRange(const struct SectionRange* ra
                   section.sectionName, bssLength, bssLocation);
         }
     }
-    
+
     file.cpuFamily = @"ppc32";
     file.cpuSubFamily = @"gecko";
     [file setAddressSpaceWidthInBits:32];
@@ -306,7 +306,7 @@ static const struct SectionRange* FindSectionRange(const struct SectionRange* ra
 
     uint32_t entryPoint = OSReadBigInt32(bytes, 0xE0);
     [file addEntryPoint:entryPoint];
-    
+
     if (((NSObject<HPLoaderOptionComponents>*)fileType.additionalParameters[0]).isChecked) {
         for (NSObject<HPSegment> *seg in file.segments) {
             if (seg.readable && !seg.executable) {
@@ -327,7 +327,7 @@ static const struct SectionRange* FindSectionRange(const struct SectionRange* ra
 }
 
 - (void)fixupRebasedFile:(NSObject<HPDisassembledFile> *)file withSlide:(int64_t)slide originalFileData:(NSData *)fileData {
-    
+
 }
 
 - (FileLoaderLoadingStatus)loadDebugData:(NSData *)data forFile:(NSObject<HPDisassembledFile> *)file usingCallback:(FileLoadingCallbackInfo)callback {
@@ -345,7 +345,7 @@ static const struct SectionRange* FindSectionRange(const struct SectionRange* ra
         Address address;
         const char* type;
         long arrCount;
-        
+
         for (word = strtok_r(line, sep2, &brkb), wordIdx = 0;
              word;
              word = strtok_r(NULL, sep2, &brkb), ++wordIdx)
@@ -367,7 +367,7 @@ static const struct SectionRange* FindSectionRange(const struct SectionRange* ra
                 break;
             }
         }
-        
+
         if (!strcmp(type, "FUNC")) {
             if (![file hasProcedureAt:address])
                 [file makeProcedureAt:address];
