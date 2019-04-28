@@ -544,6 +544,9 @@ static ByteType TypeForSize(u32 size)
         *next = disasm->virtualAddr + 4;
     } else if (disasm->instruction.branchType == DISASM_BRANCH_RET) {
         *next = BAD_ADDRESS;
+    } else if (!strcmp(disasm->instruction.mnemonic, "b")) {
+        [branches addObject:@(disasm->instruction.addressValue)];
+        *next = BAD_ADDRESS;
     } else {
         [branches addObject:@(disasm->instruction.addressValue)];
         *next = disasm->virtualAddr + 4;
